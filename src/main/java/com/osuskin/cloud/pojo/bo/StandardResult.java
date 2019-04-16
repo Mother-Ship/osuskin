@@ -26,4 +26,8 @@ public class StandardResult<T> {
         return new StandardResult(false);
     }
 
+    public StandardResult setSuccess(boolean success) {
+        this.success = success;
+        return this;
+    }
 }

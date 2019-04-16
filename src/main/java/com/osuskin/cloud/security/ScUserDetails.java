@@ -1,4 +1,4 @@
-package com.osuskin.cloud.security.osuoauth;
+package com.osuskin.cloud.security;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -8,13 +8,14 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 
 /**
- * 本应是从数据库取出的User对象，在此处设计为对接osu接口后获取的uid
+ * 封装对接osu!接口后返回的user id和管理员id
  */
 @Data
 @AllArgsConstructor
-public class OsuOAuthUserDetails implements UserDetails {
-    private Integer id;
+public class ScUserDetails implements UserDetails {
+    private Long id;
     private String username;
+    private boolean isAdmin;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

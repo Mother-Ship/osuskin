@@ -1,8 +1,7 @@
 package com.osuskin.cloud.security;
 
 
-import com.osuskin.cloud.security.admin.AdminAuthenticationFilter;
-import com.osuskin.cloud.security.admin.AdminAuthenticationProvider;
+
 import com.osuskin.cloud.security.osuoauth.OsuOAuthAuthenticationFilter;
 import com.osuskin.cloud.security.osuoauth.OsuOAuthUserDetailsAuthenticationProvider;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,18 +24,10 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     }
 
 
-    private AdminAuthenticationProvider adminAuthenticationProvider;
-
-    @Autowired
-    public void setAdminAuthenticationProvider(AdminAuthenticationProvider adminAuthenticationProvider) {
-        this.adminAuthenticationProvider = adminAuthenticationProvider;
-    }
-
-
     @Autowired
     protected void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
-        auth.authenticationProvider(osuOAuthUserDetailsAuthenticationProvider)
-                .authenticationProvider(adminAuthenticationProvider);
+        auth.authenticationProvider(osuOAuthUserDetailsAuthenticationProvider);
+
     }
 
     @Override
@@ -46,11 +37,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 //加入对osu api回调的校验
                 .addFilterBefore(osuOAuthAuthenticationFilter(),
                         UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(adminAuthenticationFilter(),
-                        UsernamePasswordAuthenticationFilter.class)
                 .authorizeRequests()
-                .antMatchers("/css/**", "/", "/loginpage","/oauth_callback","/login.json").permitAll()
-
+                .antMatchers("/css/**", "/", "/loginpage","/oauth_callback").permitAll()
                 .antMatchers("/**").authenticated()
                 .and()
                 .formLogin().loginPage("/loginpage")
@@ -65,11 +53,6 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         filter.setAuthenticationManager(authenticationManagerBean());
         return filter;
     }
-
-    public AdminAuthenticationFilter adminAuthenticationFilter() throws Exception {
-        AdminAuthenticationFilter filter = new AdminAuthenticationFilter();
-        filter.setAuthenticationManager(authenticationManagerBean());
-        return filter;
-    }
+    
 
 }

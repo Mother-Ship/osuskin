@@ -13,6 +13,8 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 @Component
 @ConfigurationProperties(prefix = "oss")
@@ -24,6 +26,7 @@ public class OssManager {
     private String mappingBucket;
     private String skinBucket;
     private ClientConfiguration CONFIG = new ClientConfiguration();
+    private OSSClient CLIENT;
 
     {
         //设置超时、错误重试
@@ -33,21 +36,18 @@ public class OssManager {
         CONFIG.setSocketTimeout(15 * 1000);
     }
 
-    private OSSClient CLIENT ;
-
     @PostConstruct
     public void setClient() {
         CLIENT = new OSSClient(endPoint, accessKey, accessKeySecret, CONFIG);
     }
 
 
-
-    public boolean isSkinComponentExist(String filename) {
-        return CLIENT.doesObjectExist(skinBucket, filename);
+    public boolean isSkinComponentExist(String md5Filename) {
+        return CLIENT.doesObjectExist(skinBucket, md5Filename);
     }
 
-    public InputStream readSkinComponent(String filename) {
-        try (OSSObject ossObject = CLIENT.getObject(skinBucket, filename);
+    public InputStream getSkinComponent(String md5Filename) {
+        try (OSSObject ossObject = CLIENT.getObject(skinBucket, md5Filename);
              InputStream rawData = ossObject.getObjectContent()) {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             IOUtils.copy(rawData, baos);
@@ -57,8 +57,30 @@ public class OssManager {
         }
     }
 
+    public String addSkinComponent(byte[] data) {
+        String md5 = md5Sign(data);
+        CLIENT.putObject(skinBucket, md5, new ByteArrayInputStream(data));
+        return md5;
+    }
 
-
-
+    private String md5Sign(byte[] data) {
+        MessageDigest md = null;
+        try {
+            md = MessageDigest.getInstance("MD5");
+            md.update(data, 0, data.length);
+            byte[] hash = md.digest();
+            StringBuilder outStrBuf = new StringBuilder(32);
+            for (byte b : hash) {
+                int v = b & 0xFF;
+                if (v < 16) {
+                    outStrBuf.append('0');
+                }
+                outStrBuf.append(Integer.toString(v, 16).toLowerCase());
+            }
+            return outStrBuf.toString();
+        } catch (NoSuchAlgorithmException ignore) {
+            return null;
+        }
+    }
 
 }
