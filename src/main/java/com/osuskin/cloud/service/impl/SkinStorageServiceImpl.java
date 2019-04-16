@@ -55,7 +55,6 @@ public class SkinStorageServiceImpl implements SkinStorageService {
         StandardResult result = StandardResult.create();
         ScUserDetails user = CurrentUserUtil.getUserDetails();
 
-
         ScSkin skin = new ScSkin();
         DtoUtil.createCommon(skin);
 
@@ -63,14 +62,14 @@ public class SkinStorageServiceImpl implements SkinStorageService {
         skin.setDownloadCount(0L);
         skin.setName(request.getName());
         skin.setMode(request.getMode().getCode());
-        scSkinRepository.saveAndFlush(skin);
+        scSkinRepository.save(skin);
 
         ScUserSkin scUserSkin = new ScUserSkin();
         DtoUtil.createCommon(scUserSkin);
         scUserSkin.setUserId(user.getId());
         scUserSkin.setSkinId(skin.getId());
 
-        ScUserSkin lastUserSkin = scUserSkinRepository.findFirstByUserIdOrderByVersionDesc(user.getId());
+        ScUserSkin lastUserSkin = scUserSkinRepository.findFirstByUserIdAndDeletedIsFalseOrderByVersionDesc(user.getId());
         //如果该用户还没有皮肤，版本默认为0
         int version = 0;
         if (lastUserSkin != null) {
